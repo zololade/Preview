@@ -4,8 +4,8 @@ type ElementAttributes<T extends Element> = {
 
 type ValidTagNameMap = HTMLElementTagNameMap & SVGElementTagNameMap;
 
-type BuiltEl = HTMLElement | SVGSVGElement | SVGPathElement | Text;
-type DOMBuilderEl = HTMLElement | SVGSVGElement | SVGPathElement;
+type BuiltEl = HTMLElement | SVGElement | Text;
+type DOMBuilderEl = HTMLElement | SVGElement;
 
 interface VNode<T extends keyof ValidTagNameMap = keyof ValidTagNameMap> {
   tag: T;

@@ -1,50 +1,53 @@
 import { SVG_TAGS } from "./svg";
 import type { BuiltEl, DOMBuilderEl, Engine, Registry, VNode } from "./types";
 
-function buildDOM(incomingObject: VNode, registry: Registry): BuiltEl {
-  let tag: VNode["tag"], children: VNode["children"], el: DOMBuilderEl;
-
-  if (isObject(incomingObject)) {
-    let attrs: VNode["attrs"], props: VNode["props"], actions: VNode["actions"], ref: VNode["ref"];
-    ({ tag, children, attrs = {}, props = {}, actions, ref } = incomingObject);
-
-    el = (
-      SVG_TAGS.has(tag)
-        ? document.createElementNS("http://www.w3.org/2000/svg", tag)
-        : document.createElement(tag)
-    ) as DOMBuilderEl;
-
-    if (ref !== undefined && actions !== undefined) {
-      registry.set(ref, { dom: el, actions: actions });
-    }
-
-    if (incomingObject.onMount) {
-      incomingObject.onMount(el);
-    }
-
-    // Apply props safely using object indexing mapping
-    Object.entries(props).forEach(([key, value]) => {
-      if (key === "xmlns") return;
-      if (el instanceof SVGElement) {
-        el.setAttribute(key, String(value));
-        return;
-      }
-      (el as Record<string, any>)[key] = value;
-    });
-
-    // Apply attributes safely via setAttribute
-    Object.entries(attrs).forEach(([key, value]) => {
-      el.setAttribute(key, String(value));
-    });
-  } else {
+function buildDOM(incomingObject: unknown, registry: Registry): BuiltEl {
+  // Handle Text Nodes immediately
+  if (!isObject(incomingObject)) {
     return document.createTextNode(String(incomingObject));
   }
 
+  // Destructure properties with safe fallbacks
+  const { tag, children, attrs = {}, props = {}, actions, ref, onMount } = incomingObject;
+
+  // Create the element with correct namespace
+  const el = (
+    SVG_TAGS.has(tag)
+      ? document.createElementNS("http://www.w3.org/2000/svg", tag)
+      : document.createElement(tag)
+  ) as DOMBuilderEl;
+
+  // Register refs and actions
+  if (ref !== undefined && actions !== undefined) {
+    registry.set(ref, { dom: el, actions });
+  }
+
+  // Trigger onMount hook
+  if (onMount) {
+    onMount(el);
+  }
+
+  // Apply element properties safely
+  Object.entries(props).forEach(([key, value]) => {
+    if (key === "xmlns") return;
+    if (el instanceof SVGElement) {
+      el.setAttribute(key, String(value));
+    } else {
+      (el as Record<string, any>)[key] = value;
+    }
+  });
+
+  // Apply standard attributes
+  Object.entries(attrs).forEach(([key, value]) => {
+    el.setAttribute(key, String(value));
+  });
+
+  // Process children inside the object scope context
   if (typeof children === "string") {
     el.textContent = children;
   } else if (Array.isArray(children)) {
-    children.forEach((data) => {
-      el.appendChild(buildDOM(data, registry));
+    children.forEach((child) => {
+      el.appendChild(buildDOM(child, registry));
     });
   }
 
@@ -53,6 +56,7 @@ function buildDOM(incomingObject: VNode, registry: Registry): BuiltEl {
 
 function createEngine(): Engine {
   const registry: Registry = new Map();
+
   return {
     mount(container: HTMLElement, rootVNode: VNode) {
       registry.clear();
@@ -62,12 +66,14 @@ function createEngine(): Engine {
     dispatch(ref: string, command: string) {
       const meta = registry.get(ref);
       if (!meta) throw new Error(`Ref "${ref}" not found`);
+
       const action = meta.actions[command];
       if (!action) throw new Error(`Unknown command "${command}"`);
+
       action(meta.dom);
     },
     render() {
-      // Implementation for diff/patch
+      // Future diff/patch logic goes here
     },
   };
 }
