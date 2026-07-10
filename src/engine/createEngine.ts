@@ -1,17 +1,14 @@
-import type { Engine, Registry, VNode } from "./types";
+import type { BuiltEl, Engine, Registry, VNode } from "./types";
 
 //recursiv dom builder
-function buildDOM(
-  incomingObject: VNode,
-  registry: Registry,
-): HTMLElement | DocumentFragment | SVGSVGElement | SVGPathElement | Text {
-  let tag: string;
-  let children: string | VNode[] | undefined;
-  let el: HTMLElement | DocumentFragment | SVGSVGElement | SVGPathElement;
-  let attrs: Record<string, string>;
-  let props: VNode["props"];
-  let actions: VNode["actions"];
-  let ref: VNode["ref"];
+function buildDOM(incomingObject: VNode, registry: Registry): BuiltEl {
+  let tag: string,
+    children: VNode["children"],
+    el: BuiltEl,
+    attrs: Record<string, string>,
+    props: VNode["props"],
+    actions: VNode["actions"],
+    ref: VNode["ref"];
 
   if (isObject(incomingObject)) {
     ({ tag, children, attrs = {}, props = {}, actions, ref } = incomingObject);
