@@ -1,37 +1,58 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { createEngine } from "../src/engine/createEngine"; // this doesn't exist yet
+import { createEngine } from "../src/engine/createEngine";
 
 describe("Engine", () => {
-  it("mounts and updates text content", () => {
-    // 1. Create a container (like <div id="app"></div>)
+  it("mounts a tree and dispatches a command to an action", () => {
     const container = document.createElement("div");
-    document.body.appendChild(container); // optional, but good practice
-
-    // 2. Create engine and mount
     const engine = createEngine();
-    engine.mount(container);
 
-    // 3. First update: create a new element with a ref
-    engine.update("title", { tag: "h2", content: "Hello" });
+    engine.mount(container, {
+      tag: "div",
+      children: [
+        {
+          tag: "input",
+          ref: "search",
+          actions: {
+            focus: (el) => el.focus(),
+          },
+        },
+      ],
+    });
 
-    // 4. Assert that the container now has an <h2>Hello</h2>
-    const h2 = container.querySelector("h2");
-    expect(h2).not.toBeNull();
-    expect(h2!.textContent).toBe("Hello");
+    const input = container.querySelector("input")!;
+    const focusSpy = vi.spyOn(input, "focus");
 
-    // 5. Store the element reference for later comparison
-    const originalElement = h2!;
+    engine.dispatch("search", "focus");
 
-    // 6. Second update: change only the content
-    engine.update("title", { content: "World" });
+    expect(focusSpy).toHaveBeenCalledOnce();
+  });
 
-    // 7. Assert that the same DOM element is still there (no re-creation)
-    const updatedH2 = container.querySelector("h2");
-    expect(updatedH2).toBe(originalElement); // Same object reference
-    expect(updatedH2!.textContent).toBe("World");
+  it("throws when dispatching an unknown command", () => {
+    const container = document.createElement("div");
+    const engine = createEngine();
 
-    // 8. Clean up
-    document.body.removeChild(container);
+    engine.mount(container, {
+      tag: "div",
+      children: [{ tag: "input", ref: "search" }],
+    });
+
+    expect(() => engine.dispatch("search", "focus")).toThrow('Ref "search" not found');
+  });
+
+  it("throws when dispatching an unknown command on an existing ref", () => {
+    const container = document.createElement("div");
+    const engine = createEngine();
+    engine.mount(container, {
+      tag: "div",
+      children: [
+        {
+          tag: "input",
+          ref: "search",
+          actions: { focus: (el) => el.focus() },
+        },
+      ],
+    });
+    expect(() => engine.dispatch("search", "blur")).toThrow("unknown command");
   });
 });
