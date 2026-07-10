@@ -1,0 +1,25 @@
+const SVG_TAGS = new Set([
+  "svg",
+  "path",
+  "circle",
+  "rect",
+  "g",
+  "line",
+  "polyline",
+  "polygon",
+  "text",
+  "tspan",
+  "defs",
+  "clipPath",
+  "mask",
+  "linearGradient",
+  "radialGradient",
+  "stop",
+  "use",
+  "image",
+  "symbol",
+  "marker",
+  "pattern",
+]);
+
+export { SVG_TAGS };

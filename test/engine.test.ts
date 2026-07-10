@@ -17,6 +17,12 @@ describe("Engine", () => {
             focus: (el) => el.focus(),
           },
         },
+        {
+          tag: "input",
+          props: {
+            className: "hello",
+          },
+        },
       ],
     });
 
@@ -53,6 +59,6 @@ describe("Engine", () => {
         },
       ],
     });
-    expect(() => engine.dispatch("search", "blur")).toThrow("unknown command");
+    expect(() => engine.dispatch("search", "blur")).toThrow('Unknown command "blur"');
   });
 });

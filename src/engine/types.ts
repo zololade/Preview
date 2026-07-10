@@ -1,16 +1,19 @@
-type ElementAttributes<T extends HTMLElement> = {
+type ElementAttributes<T extends Element> = {
   [K in keyof T as T[K] extends string | number | boolean ? K : never]?: T[K];
 };
 
-type BuiltEl = HTMLElement | DocumentFragment | SVGSVGElement | SVGPathElement | Text;
+type ValidTagNameMap = HTMLElementTagNameMap & SVGElementTagNameMap;
 
-interface VNode<T extends keyof HTMLElementTagNameMap = keyof HTMLElementTagNameMap> {
+type BuiltEl = HTMLElement | SVGSVGElement | SVGPathElement | Text;
+type DOMBuilderEl = HTMLElement | SVGSVGElement | SVGPathElement;
+
+interface VNode<T extends keyof ValidTagNameMap = keyof ValidTagNameMap> {
   tag: T;
-  children?: VNode<keyof HTMLElementTagNameMap>[] | string;
+  children?: VNode<keyof ValidTagNameMap>[] | string;
   ref?: string;
-  actions?: Record<string, (el: HTMLElementTagNameMap[T]) => void>;
-  onMount?: (el: HTMLElementTagNameMap[T]) => void | Promise<void>;
-  props?: ElementAttributes<HTMLElementTagNameMap[T]>;
+  actions?: Record<string, (el: ValidTagNameMap[T]) => void>;
+  onMount?: (el: ValidTagNameMap[T]) => void | Promise<void>;
+  props?: ElementAttributes<ValidTagNameMap[T]>;
   attrs?: Record<string, string>;
 }
 
@@ -20,9 +23,6 @@ interface Engine {
   render(): void;
 }
 
-type Registry = Map<
-  string,
-  { dom: HTMLElement; actions: Record<string, (el: HTMLElement) => void> }
->;
+type Registry = Map<string, { dom: DOMBuilderEl; actions: Record<string, (el: any) => void> }>;
 
-export type { VNode, Engine, Registry, BuiltEl };
+export type { VNode, Engine, Registry, BuiltEl, DOMBuilderEl, ValidTagNameMap };
