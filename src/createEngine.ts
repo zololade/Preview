@@ -54,6 +54,30 @@ function buildDOM(incomingObject: unknown, registry: Registry): BuiltEl {
   return el;
 }
 
+function patch(oldVNode: VNode, newVNode: VNode, dom: BuiltEl, registry: Registry): BuiltEl {
+  // If either is a string or different tag, full replace (not yet needed for first test)
+  if (isObject(oldVNode) && isObject(newVNode) && oldVNode.tag === newVNode.tag) {
+    // Same tag: reuse dom element
+    // Update text if children changed (string case)
+    if (
+      typeof oldVNode.children === "string" &&
+      typeof newVNode.children === "string" &&
+      oldVNode.children !== newVNode.children
+    ) {
+      dom.textContent = newVNode.children;
+    }
+    // If ref present, ensure registry still points to this dom (no action if unchanged)
+    if (newVNode.ref) {
+      // It's the same dom, registry already correct
+    }
+    return dom;
+  }
+  // Otherwise, build new, replace, update registry for any new ref
+  const newDom = buildDOM(newVNode, registry);
+  // (parent replacement logic would go here – not needed for root node)
+  return newDom;
+}
+
 function createEngine(buildTree: () => VNode): Engine {
   const registry: Registry = new Map();
   // Track internal state across renders
@@ -79,10 +103,10 @@ function createEngine(buildTree: () => VNode): Engine {
         throw new Error("Engine must be mounted before rendering updates.");
       }
       // Generate the fresh virtual tree
-      // const nextVNode = buildTree();
+      const nextVNode = buildTree();
       // Patch the live DOM and update the tree tracking pointer
-      // rootDOMElement = patch(currentVNode, nextVNode, rootDOMElement, registry);
-      // currentVNode = nextVNode;
+      rootDOMElement = patch(currentVNode, nextVNode, rootDOMElement, registry);
+      currentVNode = nextVNode;
     },
 
     dispatch(ref: string, command: string) {
