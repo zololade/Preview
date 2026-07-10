@@ -1,5 +1,5 @@
-import { SVG_TAGS } from "./svg";
-import type { BuiltEl, DOMBuilderEl, Engine, Registry, VNode } from "./types";
+import { SVG_TAGS } from "./lib/svg";
+import type { BuiltEl, DOMBuilderEl, Engine, Registry, VNode } from "./lib/types";
 
 function buildDOM(incomingObject: unknown, registry: Registry): BuiltEl {
   // Handle Text Nodes immediately

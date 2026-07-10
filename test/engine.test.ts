@@ -1,8 +1,8 @@
 // oxlint-disable unicorn/consistent-function-scoping
 import { describe, expect, it, vi } from "vitest";
 
-import { createEngine } from "../src/engine/createEngine";
-import type { VNode } from "../src/engine/types";
+import { createEngine } from "../src/createEngine";
+import type { VNode } from "../src/lib/types";
 
 describe("Engine", () => {
   it("mounts a tree and dispatches a command to an action", () => {
