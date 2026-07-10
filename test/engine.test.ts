@@ -75,4 +75,32 @@ describe("Engine", () => {
     engine.mount(container);
     expect(() => engine.dispatch("search", "blur")).toThrow('Unknown command "blur"');
   });
+
+  it("verifies patch function reuse existing DOM", () => {
+    const state = {
+      name: "ololade",
+    };
+    const container = document.createElement("div");
+    const root = (): VNode => {
+      return {
+        tag: "div",
+        children: [
+          { tag: "h2", ref: "msg", children: state.name, actions: { focus: (el) => el.focus() } },
+        ],
+      };
+    };
+
+    const engine = createEngine(root);
+    engine.mount(container);
+
+    const cont = container.querySelector("h2");
+    const focusSpy = vi.spyOn(cont!, "focus");
+    engine.dispatch("msg", "focus");
+
+    expect(focusSpy).toHaveBeenCalledOnce();
+    expect(cont?.textContent).toBe("ololade");
+    state.name = "World";
+    engine.render();
+    expect(cont?.textContent).toBe("World");
+  });
 });
