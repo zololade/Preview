@@ -54,26 +54,43 @@ function buildDOM(incomingObject: unknown, registry: Registry): BuiltEl {
   return el;
 }
 
-function createEngine(): Engine {
+function createEngine(buildTree: () => VNode): Engine {
   const registry: Registry = new Map();
+  // Track internal state across renders
+  let currentVNode: VNode | null = null;
+  let rootContainer: HTMLElement | null = null;
+  let rootDOMElement: BuiltEl | null = null;
 
   return {
-    mount(container: HTMLElement, rootVNode: VNode) {
+    mount(container: HTMLElement) {
       registry.clear();
-      const root = buildDOM(rootVNode, registry);
-      container.appendChild(root);
+      rootContainer = container;
+
+      // Generate the initial tree representation
+      currentVNode = buildTree();
+      rootDOMElement = buildDOM(currentVNode, registry);
+
+      container.innerHTML = ""; // Clear existing fallback HTML
+      container.appendChild(rootDOMElement);
     },
+
+    render() {
+      if (!rootContainer || !currentVNode || !rootDOMElement) {
+        throw new Error("Engine must be mounted before rendering updates.");
+      }
+      // Generate the fresh virtual tree
+      // const nextVNode = buildTree();
+      // Patch the live DOM and update the tree tracking pointer
+      // rootDOMElement = patch(currentVNode, nextVNode, rootDOMElement, registry);
+      // currentVNode = nextVNode;
+    },
+
     dispatch(ref: string, command: string) {
       const meta = registry.get(ref);
       if (!meta) throw new Error(`Ref "${ref}" not found`);
-
       const action = meta.actions[command];
       if (!action) throw new Error(`Unknown command "${command}"`);
-
       action(meta.dom);
-    },
-    render() {
-      // Future diff/patch logic goes here
     },
   };
 }

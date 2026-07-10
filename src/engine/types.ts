@@ -18,7 +18,7 @@ interface VNode<T extends keyof ValidTagNameMap = keyof ValidTagNameMap> {
 }
 
 interface Engine {
-  mount(container: HTMLElement, rootVNode: VNode): void;
+  mount(container: HTMLElement): void;
   dispatch(ref: string, command: string): void;
   render(): void;
 }
