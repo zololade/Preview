@@ -1,0 +1,29 @@
+{
+  "name": "preview",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc && vite build",
+    "dev": "vite",
+    "format": "oxfmt src",
+    "lint": "oxlint src",
+    "lint:fix": "oxlint src --fix",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:format": "oxfmt test",
+    "test:lint": "oxlint test",
+    "test:lint:fix": "oxlint test --fix",
+    "test:ui": "vitest --ui",
+    "test:watch": "vitest watch"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.6",
+    "@vitest/ui": "^4.1.8",
+    "oxfmt": "^0.56.0",
+    "oxlint": "^1.69.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.10",
+    "vitest": "^4.1.5"
+  }
+}

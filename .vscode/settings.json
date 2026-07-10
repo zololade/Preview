@@ -1,0 +1,28 @@
+{
+  "cSpell.customDictionaries": {
+    "custom-dictionary-workspace": {
+      "name": "custom-dictionary-workspace",
+      "path": "${workspaceFolder:Preview}/.cspell/custom-dictionary-workspace.txt",
+      "addWords": true,
+      "scope": "workspace"
+    }
+  },
+
+  "editor.defaultFormatter": "oxc.oxc-vscode",
+  "editor.formatOnSave": false,
+  "editor.formatOnPaste": false,
+  "editor.formatOnType": false,
+
+  "editor.codeActionsOnSave": {
+    "source.format.oxc": "always",
+    "source.fixAll.oxc": "always"
+  },
+
+  "[markdown]": {
+    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
+  },
+
+  "js/ts.updateImportsOnFileMove.enabled": "always",
+  "oxc.enable": true,
+  "oxc.enable.oxlint": true
+}

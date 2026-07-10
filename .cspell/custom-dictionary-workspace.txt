@@ -1,0 +1,8 @@
+# Custom Dictionary Words
+codebook
+contenteditable
+horiz
+njsproj
+ntvs
+oxfmt
+oxlint
