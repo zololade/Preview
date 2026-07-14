@@ -4,12 +4,7 @@ import type { BuiltEl, DOMBuilderEl, Engine, Registry, VNode } from "./lib/types
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-function buildDOM(incomingObject: unknown, registry: Registry): BuiltEl {
-  // Handle Text Nodes immediately
-  if (!isObject(incomingObject)) {
-    return document.createTextNode(String(incomingObject));
-  }
-
+function buildDOM(incomingObject: VNode, registry: Registry): BuiltEl {
   // Destructure properties with safe fallbacks
   const { tag, children, attrs = {}, actions, ref, onMount } = incomingObject;
 
