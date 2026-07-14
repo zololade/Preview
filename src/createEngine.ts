@@ -8,20 +8,25 @@ function buildDOM(incomingObject: unknown, registry: Registry): BuiltEl {
   if (!isObject(incomingObject)) {
     return document.createTextNode(String(incomingObject));
   }
+
   // Destructure properties with safe fallbacks
   const { tag, children, attrs = {}, actions, ref, onMount } = incomingObject;
+
   // Create the element with correct namespace
   const el = (
     SVG_TAGS.has(tag) ? document.createElementNS(SVG_NS, tag) : document.createElement(tag)
   ) as DOMBuilderEl;
+
   // Register refs and actions
   if (ref !== undefined && actions !== undefined) {
     registry.set(ref, { dom: el, actions });
   }
+
   // Trigger onMount hook
   if (onMount) {
     (onMount as (el: DOMBuilderEl) => void | Promise<void>)(el);
   }
+
   // Apply element properties safely
   applyAttrs(el, attrs);
 
@@ -46,6 +51,7 @@ function patch(oldVNode: VNode, newVNode: VNode, _dom: BuiltEl, registry: Regist
 
 function createEngine(buildTree: () => VNode): Engine {
   const registry: Registry = new Map();
+
   // Track internal state across renders
   let currentVNode: VNode | null = null;
   let rootContainer: HTMLElement | null = null;
@@ -68,8 +74,10 @@ function createEngine(buildTree: () => VNode): Engine {
       if (!rootContainer || !currentVNode || !rootDOMElement) {
         throw new Error("Engine must be mounted before rendering updates.");
       }
+
       // Generate the fresh virtual tree
       const nextVNode = buildTree();
+
       // Patch the live DOM and update the tree tracking pointer
       patch(currentVNode, nextVNode, rootDOMElement, registry);
       currentVNode = nextVNode;
