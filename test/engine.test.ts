@@ -58,7 +58,7 @@ describe("Engine", () => {
     engine.mount(container);
 
     const svg = container.querySelector("svg")!;
-    expect(svg).not.toBeNull();
+    expect(svg.getAttribute("cx")).toBe("50");
   });
 
   it("throws when dispatching an unknown command", () => {
