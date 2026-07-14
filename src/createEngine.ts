@@ -1,5 +1,7 @@
-import { SVG_TAGS } from "./lib/svg";
+import { SVG_PROP_KEYS, SVG_TAGS } from "./lib/svg";
 import type { BuiltEl, DOMBuilderEl, Engine, Registry, VNode } from "./lib/types";
+
+const SVG_NS = "http://www.w3.org/2000/svg";
 
 function buildDOM(incomingObject: unknown, registry: Registry): BuiltEl {
   // Handle Text Nodes immediately
@@ -7,12 +9,10 @@ function buildDOM(incomingObject: unknown, registry: Registry): BuiltEl {
     return document.createTextNode(String(incomingObject));
   }
   // Destructure properties with safe fallbacks
-  const { tag, children, attrs = {}, props = {}, actions, ref, onMount } = incomingObject;
+  const { tag, children, attrs = {}, actions, ref, onMount } = incomingObject;
   // Create the element with correct namespace
   const el = (
-    SVG_TAGS.has(tag)
-      ? document.createElementNS("http://www.w3.org/2000/svg", tag)
-      : document.createElement(tag)
+    SVG_TAGS.has(tag) ? document.createElementNS(SVG_NS, tag) : document.createElement(tag)
   ) as DOMBuilderEl;
   // Register refs and actions
   if (ref !== undefined && actions !== undefined) {
@@ -23,13 +23,8 @@ function buildDOM(incomingObject: unknown, registry: Registry): BuiltEl {
     (onMount as (el: DOMBuilderEl) => void | Promise<void>)(el);
   }
   // Apply element properties safely
-  Object.entries(props).forEach(([key, value]) => {
-    (el as Record<string, any>)[key] = value;
-  });
-  // Apply standard attributes
-  Object.entries(attrs).forEach(([key, value]) => {
-    el.setAttribute(key, String(value));
-  });
+  applyAttrs(el, attrs);
+
   // Process children inside the object scope context
   if (typeof children === "string") {
     el.textContent = children;
@@ -88,6 +83,34 @@ function createEngine(buildTree: () => VNode): Engine {
       action(meta.dom);
     },
   };
+}
+
+//helper
+function applyAttrs(el: DOMBuilderEl, attrs: Record<string, unknown>) {
+  const isSvg = el.namespaceURI === SVG_NS;
+
+  for (const [key, value] of Object.entries(attrs)) {
+    if (value == null) continue;
+    if (key === "class" || key === "className") {
+      el.setAttribute("class", String(value));
+      continue;
+    }
+
+    if (isSvg) {
+      if (SVG_PROP_KEYS.has(key)) {
+        Reflect.set(el, key, value);
+      } else {
+        el.setAttribute(key, String(value));
+      }
+      continue;
+    }
+
+    if (key in el) {
+      Reflect.set(el, key, value);
+    } else {
+      el.setAttribute(key, String(value));
+    }
+  }
 }
 
 function isObject(value: unknown): value is VNode {

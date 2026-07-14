@@ -20,7 +20,7 @@ describe("Engine", () => {
           },
           {
             tag: "input",
-            props: {
+            attrs: {
               className: "hello",
             },
           },
@@ -45,7 +45,6 @@ describe("Engine", () => {
     const root = (): VNode => {
       return {
         tag: "svg",
-        props: {},
         attrs: {
           cx: "50",
         },

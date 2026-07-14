@@ -1,5 +1,13 @@
-type ElementAttributes<T extends Element> = {
-  [K in keyof T as T[K] extends string | number | boolean ? K : never]?: T[K];
+import type { SVGAttributes } from "./svg";
+
+type Primitive = string | number | boolean | null | undefined;
+
+type ElementAttributes<T extends HTMLElement> = {
+  [K in keyof T as T[K] extends Primitive ? K : never]?: T[K];
+} & {
+  [K in `data-${string}`]?: Primitive;
+} & {
+  [K in `aria-${string}`]?: Primitive;
 };
 
 type ValidTagNameMap = HTMLElementTagNameMap & SVGElementTagNameMap;
@@ -14,8 +22,9 @@ type VNodeMap = {
     ref?: string;
     actions?: Record<string, (el: ValidTagNameMap[T]) => void>;
     onMount?: (el: ValidTagNameMap[T]) => void | Promise<void>;
-    props?: ElementAttributes<ValidTagNameMap[T]>;
-    attrs?: Record<string, string>;
+    attrs?: ValidTagNameMap[T] extends HTMLElement
+      ? ElementAttributes<ValidTagNameMap[T]>
+      : SVGAttributes;
   };
 };
 type VNode = VNodeMap[keyof VNodeMap];
