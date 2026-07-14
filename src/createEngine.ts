@@ -1,5 +1,6 @@
+import { applyAttrs, removeAttrs } from "./lib/attrs";
 import { initializeEvents, type HandlersByEvent } from "./lib/eventDelegator";
-import { SVG_PROP_KEYS, SVG_TAGS } from "./lib/svg";
+import { SVG_TAGS } from "./lib/svg";
 import type { BuiltEl, DOMBuilderEl, Engine, Registry, VNode } from "./lib/types";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -38,11 +39,51 @@ function buildDOM(incomingObject: VNode, registry: Registry): BuiltEl {
   return el;
 }
 
-function patch(oldVNode: VNode, newVNode: VNode, _dom: BuiltEl, registry: Registry): BuiltEl {
-  if (isObject(oldVNode) && isObject(newVNode) && oldVNode.tag === newVNode.tag) {
+function patch(oldVNode: VNode, newVNode: VNode, dom: BuiltEl) {
+  const oldChild = oldVNode.children;
+  const newChild = newVNode.children;
+
+  //identify and reform attributes
+  if (newVNode.attrs) {
+    for (const [key, value] of Object.entries(newVNode.attrs)) {
+      // in old and old has key
+      if (oldVNode.attrs && Object.hasOwn(oldVNode.attrs, key)) {
+        if ((oldVNode.attrs as Record<string, unknown>)[key] === value) continue;
+      }
+      applyAttrs(dom as DOMBuilderEl, { [key]: value });
+      continue;
+    }
   }
-  const newDom = buildDOM(newVNode, registry);
-  return newDom;
+  if (oldVNode.attrs) {
+    for (const [key, value] of Object.entries(oldVNode.attrs)) {
+      if (!newVNode.attrs || !Object.hasOwn(newVNode.attrs, key)) {
+        removeAttrs(dom as DOMBuilderEl, { [key]: value });
+        //remove attributes
+      }
+    }
+  }
+  // base case
+  if (oldChild === undefined && newChild === undefined) return;
+
+  // handle oldChild existing and new child gone, and vice versa
+
+  // handle string
+  if (typeof oldChild === "string" && typeof newChild === "string") {
+    dom.textContent = newChild;
+    return;
+  }
+  // handle oldChild string and new child Array or no child, and vice versa
+
+  // dive deeper
+  if (Array.isArray(oldChild) && Array.isArray(newChild)) {
+    // i need to handle everyone together
+    oldChild.forEach((_value, index) => {
+      if (oldChild && newChild)
+        patch(oldChild[index]!, newChild[index]!, dom.childNodes[index] as BuiltEl);
+      //remove assertion when individual cases have been handled
+    });
+    return;
+  }
 }
 
 function createEngine(buildTree: () => VNode): Engine {
@@ -85,7 +126,7 @@ function createEngine(buildTree: () => VNode): Engine {
       const nextVNode = buildTree();
 
       // Patch the live DOM and update the tree tracking pointer
-      patch(currentVNode, nextVNode, rootDOMElement, registry);
+      patch(currentVNode, nextVNode, rootDOMElement);
       currentVNode = nextVNode;
     },
 
@@ -97,38 +138,6 @@ function createEngine(buildTree: () => VNode): Engine {
       action(meta.dom);
     },
   };
-}
-
-//helper
-function applyAttrs(el: DOMBuilderEl, attrs: Record<string, unknown>) {
-  const isSvg = el.namespaceURI === SVG_NS;
-
-  for (const [key, value] of Object.entries(attrs)) {
-    if (value == null) continue;
-    if (key === "class" || key === "className") {
-      el.setAttribute("class", String(value));
-      continue;
-    }
-
-    if (isSvg) {
-      if (SVG_PROP_KEYS.has(key)) {
-        Reflect.set(el, key, value);
-      } else {
-        el.setAttribute(key, String(value));
-      }
-      continue;
-    }
-
-    if (key in el) {
-      Reflect.set(el, key, value);
-    } else {
-      el.setAttribute(key, String(value));
-    }
-  }
-}
-
-function isObject(value: unknown): value is VNode {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 export { createEngine };

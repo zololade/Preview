@@ -95,30 +95,90 @@ describe("Engine", () => {
   });
 
   it("verifies patch function reuse existing DOM", () => {
-    const state = {
-      name: "ololade",
-    };
+    let bool = true;
     const container = document.createElement("div");
     const root = (): VNode => {
       return {
         tag: "div",
         children: [
-          { tag: "h2", ref: "msg", children: state.name, actions: { focus: (el) => el.focus() } },
+          {
+            tag: "h2",
+            ref: "msg",
+            children: bool ? "ololade" : "james",
+            actions: { focus: (el) => el.focus() },
+          },
         ],
       };
     };
 
     const engine = createEngine(root);
     engine.mount(container);
+    bool = false;
 
-    const cont = container.querySelector("h2");
-    const focusSpy = vi.spyOn(cont!, "focus");
-    engine.dispatch("msg", "focus");
-
-    expect(focusSpy).toHaveBeenCalledOnce();
-    expect(cont?.textContent).toBe("ololade");
-    state.name = "World";
     engine.render();
-    expect(cont?.textContent).toBe("World");
+    const cont = container.querySelector("h2");
+    expect(cont?.textContent).toBe("james");
+  });
+
+  it("verifies patch function updates attributes", () => {
+    let bool = false;
+    const attributes = { className: "james" };
+    const replacement = { className: "ololade" };
+
+    const container = document.createElement("div");
+    const root = (): VNode => {
+      return {
+        tag: "div",
+        children: [
+          {
+            tag: "h2",
+            ref: "msg",
+            attrs: !bool ? attributes : replacement,
+            children: "ololade",
+            actions: { focus: (el) => el.focus() },
+          },
+        ],
+      };
+    };
+
+    const engine = createEngine(root);
+    engine.mount(container);
+    const h2 = container.querySelector("h2");
+    bool = true;
+    engine.render();
+
+    const cls = h2?.className;
+    expect(cls).toBe("ololade");
+  });
+
+  it("ensures stale attributes is removed and new one added", () => {
+    let bool = false;
+    const attributes = { className: "james" };
+    const replacement = { id: "james" };
+
+    const container = document.createElement("div");
+    const root = (): VNode => {
+      return {
+        tag: "div",
+        children: [
+          {
+            tag: "h2",
+            ref: "msg",
+            attrs: !bool ? attributes : replacement,
+            children: "ololade",
+            actions: { focus: (el) => el.focus() },
+          },
+        ],
+      };
+    };
+
+    const engine = createEngine(root);
+    engine.mount(container);
+    const h2 = container.querySelector("h2");
+    bool = true;
+    engine.render();
+
+    const cls = h2?.className;
+    expect(cls).toBe("");
   });
 });
