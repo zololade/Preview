@@ -54,7 +54,7 @@ function buildDOM(incomingObject: unknown, registry: Registry): BuiltEl {
   return el;
 }
 
-function patch(oldVNode: VNode, newVNode: VNode, dom: BuiltEl, registry: Registry): BuiltEl {
+function patch(oldVNode: VNode, newVNode: VNode, _dom: BuiltEl, registry: Registry): BuiltEl {
   if (isObject(oldVNode) && isObject(newVNode) && oldVNode.tag === newVNode.tag) {
   }
   const newDom = buildDOM(newVNode, registry);

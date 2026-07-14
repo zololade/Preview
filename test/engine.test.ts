@@ -9,7 +9,7 @@ describe("Engine", () => {
     const container = document.createElement("div");
     const root = (): VNode => {
       return {
-        tag: "div",
+        tag: "svg",
         children: [
           {
             tag: "input",
@@ -38,6 +38,27 @@ describe("Engine", () => {
     engine.dispatch("search", "focus");
 
     expect(focusSpy).toHaveBeenCalledOnce();
+  });
+
+  it("test svg element", () => {
+    const container = document.createElement("div");
+    const root = (): VNode => {
+      return {
+        tag: "svg",
+        props: {
+          onclick: () => alert("hello"),
+        },
+        attrs: {
+          cx: "50",
+        },
+      };
+    };
+
+    const engine = createEngine(root);
+    engine.mount(container);
+
+    const svg = container.querySelector("svg")!;
+    expect(svg).not.toBeNull();
   });
 
   it("throws when dispatching an unknown command", () => {
