@@ -7,15 +7,18 @@ type ValidTagNameMap = HTMLElementTagNameMap & SVGElementTagNameMap;
 type BuiltEl = HTMLElement | SVGElement | Text;
 type DOMBuilderEl = HTMLElement | SVGElement;
 
-interface VNode<T extends keyof ValidTagNameMap = keyof ValidTagNameMap> {
-  tag: T;
-  children?: VNode<keyof ValidTagNameMap>[] | string;
-  ref?: string;
-  actions?: Record<string, (el: ValidTagNameMap[T]) => void>;
-  onMount?: (el: ValidTagNameMap[T]) => void | Promise<void>;
-  props?: ElementAttributes<ValidTagNameMap[T]>;
-  attrs?: Record<string, string>;
-}
+type VNodeMap = {
+  [T in keyof ValidTagNameMap]: {
+    tag: T;
+    children?: VNode[] | string;
+    ref?: string;
+    actions?: Record<string, (el: ValidTagNameMap[T]) => void>;
+    onMount?: (el: ValidTagNameMap[T]) => void | Promise<void>;
+    props?: ElementAttributes<ValidTagNameMap[T]>;
+    attrs?: Record<string, string>;
+  };
+};
+type VNode = VNodeMap[keyof VNodeMap];
 
 interface Engine {
   mount(container: HTMLElement): void;

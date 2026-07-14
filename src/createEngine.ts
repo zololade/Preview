@@ -20,7 +20,7 @@ function buildDOM(incomingObject: unknown, registry: Registry): BuiltEl {
   }
   // Trigger onMount hook
   if (onMount) {
-    onMount(el);
+    (onMount as (el: DOMBuilderEl) => void | Promise<void>)(el);
   }
   // Apply element properties safely
   Object.entries(props).forEach(([key, value]) => {

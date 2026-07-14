@@ -45,9 +45,7 @@ describe("Engine", () => {
     const root = (): VNode => {
       return {
         tag: "svg",
-        props: {
-          onclick: () => alert("hello"),
-        },
+        props: {},
         attrs: {
           cx: "50",
         },
