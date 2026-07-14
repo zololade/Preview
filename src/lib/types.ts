@@ -1,3 +1,4 @@
+import type { HandlersByEvent } from "./eventDelegator";
 import type { SVGAttributes } from "./svg";
 
 type Primitive = string | number | boolean | null | undefined;
@@ -30,7 +31,7 @@ type VNodeMap = {
 type VNode = VNodeMap[keyof VNodeMap];
 
 interface Engine {
-  mount(container: HTMLElement): void;
+  mount(container: HTMLElement): { link: (handlers: HandlersByEvent) => void };
   dispatch(ref: string, command: string): void;
   render(): void;
 }

@@ -1,3 +1,4 @@
+import { initializeEvents, type HandlersByEvent } from "./lib/eventDelegator";
 import { SVG_PROP_KEYS, SVG_TAGS } from "./lib/svg";
 import type { BuiltEl, DOMBuilderEl, Engine, Registry, VNode } from "./lib/types";
 
@@ -68,6 +69,12 @@ function createEngine(buildTree: () => VNode): Engine {
 
       container.innerHTML = ""; // Clear existing fallback HTML
       container.appendChild(rootDOMElement);
+
+      return {
+        link(handlers: HandlersByEvent) {
+          initializeEvents(handlers, container);
+        },
+      };
     },
 
     render() {
