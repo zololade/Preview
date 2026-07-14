@@ -60,6 +60,10 @@ function createEngine(buildTree: () => VNode): Engine {
 
   return {
     mount(container: HTMLElement) {
+      if (rootContainer) {
+        throw new Error("This engine is already mounted.");
+      }
+
       registry.clear();
       rootContainer = container;
 
