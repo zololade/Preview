@@ -43,6 +43,7 @@ function patch(oldVNode: VNode, newVNode: VNode, dom: BuiltEl, registry: Registr
   const oldChild = oldVNode.children;
   const newChild = newVNode.children;
 
+  // tag change
   if (oldVNode.tag !== newVNode.tag) {
     const parentContainer = dom.parentElement;
     dom.remove();
@@ -50,7 +51,7 @@ function patch(oldVNode: VNode, newVNode: VNode, dom: BuiltEl, registry: Registr
     return;
   }
 
-  //identify and reform attributes
+  // update attributes
   if (newVNode.attrs) {
     for (const [key, value] of Object.entries(newVNode.attrs)) {
       // in old and old has key
@@ -68,16 +69,17 @@ function patch(oldVNode: VNode, newVNode: VNode, dom: BuiltEl, registry: Registr
       }
     }
   }
-  // base case
+
+  // base cases
+  // ####
   if (oldChild === undefined && newChild === undefined) return;
-
-  // handle oldChild existing and new child gone, and vice versa
-
   // handle string
   if (typeof oldChild === "string" && typeof newChild === "string") {
     dom.textContent = newChild;
     return;
   }
+  // ####
+
   // handle oldChild string and new child Array or no child, and vice versa
 
   // dive deeper
