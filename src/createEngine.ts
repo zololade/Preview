@@ -52,6 +52,12 @@ function patch(oldVNode: VNode, newVNode: VNode, dom: BuiltEl, registry: Registr
   }
 
   // update attributes
+  if (oldVNode.attrs && newVNode.attrs && oldVNode.attrs === newVNode.attrs) {
+    console.warn(
+      `Same attrs object reused for <${newVNode.tag}>${newVNode.ref ? ` (ref: "${newVNode.ref}")` : ""}:`,
+      newVNode.attrs,
+    );
+  }
   if (newVNode.attrs) {
     for (const [key, value] of Object.entries(newVNode.attrs)) {
       // in old and old has key

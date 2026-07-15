@@ -88,4 +88,40 @@ describe("Engine", () => {
     engine.render();
     expect(container.querySelector(".element")?.tagName).toBe("DIV");
   });
+
+  it("warns when the same attrs object is reused across renders", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const sharedAttrs = { className: "element" };
+
+    const { engine } = setup(() => ({
+      tag: "div",
+      ref: "box",
+      attrs: sharedAttrs, // same reference every call
+    }));
+
+    sharedAttrs.className = "mutated"; // mutate in place, don't reassign
+    engine.render();
+
+    expect(warnSpy).toHaveBeenCalledOnce();
+    expect(warnSpy.mock.calls[0]?.[0]).toContain('ref: "box"');
+
+    warnSpy.mockRestore();
+  });
+
+  it("does not warn when attrs are rebuilt fresh each render", () => {
+    const warnSpy = vi.spyOn(console, "warn");
+    let bool = false;
+
+    const { engine } = setup(() => ({
+      tag: "div",
+      ref: "box",
+      attrs: { className: bool ? "b" : "a" }, // fresh object every call
+    }));
+
+    bool = true;
+    engine.render();
+
+    expect(warnSpy).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
 });
