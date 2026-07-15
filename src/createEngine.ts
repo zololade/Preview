@@ -46,8 +46,7 @@ function patch(oldVNode: VNode, newVNode: VNode, dom: BuiltEl, registry: Registr
   // tag change
   if (oldVNode.tag !== newVNode.tag) {
     const parentContainer = dom.parentElement;
-    dom.remove();
-    parentContainer?.appendChild(buildDOM(newVNode, registry));
+    parentContainer?.replaceChild(buildDOM(newVNode, registry), dom);
     return;
   }
 
