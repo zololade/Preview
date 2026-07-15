@@ -58,7 +58,6 @@ function patch(oldVNode: VNode, newVNode: VNode, dom: BuiltEl) {
     for (const [key, value] of Object.entries(oldVNode.attrs)) {
       if (!newVNode.attrs || !Object.hasOwn(newVNode.attrs, key)) {
         removeAttrs(dom as DOMBuilderEl, { [key]: value });
-        //remove attributes
       }
     }
   }
