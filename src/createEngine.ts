@@ -39,9 +39,16 @@ function buildDOM(incomingObject: VNode, registry: Registry): BuiltEl {
   return el;
 }
 
-function patch(oldVNode: VNode, newVNode: VNode, dom: BuiltEl) {
+function patch(oldVNode: VNode, newVNode: VNode, dom: BuiltEl, registry: Registry) {
   const oldChild = oldVNode.children;
   const newChild = newVNode.children;
+
+  if (oldVNode.tag !== newVNode.tag) {
+    const parentContainer = dom.parentElement;
+    dom.remove();
+    parentContainer?.appendChild(buildDOM(newVNode, registry));
+    return;
+  }
 
   //identify and reform attributes
   if (newVNode.attrs) {
@@ -78,7 +85,7 @@ function patch(oldVNode: VNode, newVNode: VNode, dom: BuiltEl) {
     // i need to handle everyone together
     oldChild.forEach((_value, index) => {
       if (oldChild && newChild)
-        patch(oldChild[index]!, newChild[index]!, dom.childNodes[index] as BuiltEl);
+        patch(oldChild[index]!, newChild[index]!, dom.childNodes[index] as BuiltEl, registry);
       //remove assertion when individual cases have been handled
     });
     return;
@@ -125,7 +132,7 @@ function createEngine(buildTree: () => VNode): Engine {
       const nextVNode = buildTree();
 
       // Patch the live DOM and update the tree tracking pointer
-      patch(currentVNode, nextVNode, rootDOMElement);
+      patch(currentVNode, nextVNode, rootDOMElement, registry);
       currentVNode = nextVNode;
     },
 
