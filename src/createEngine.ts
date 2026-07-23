@@ -5,15 +5,7 @@ import type { BuiltEl, DOMBuilderEl, Engine, Registry, VNode } from "./lib/types
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-function buildDOM(incomingObject: VNode | VNode[], registry: Registry): BuiltEl {
-  if (Array.isArray(incomingObject)) {
-    const el = document.createDocumentFragment();
-    incomingObject.forEach((child) => {
-      el.appendChild(buildDOM(child, registry));
-    });
-    return el;
-  }
-
+function buildDOM(incomingObject: VNode, registry: Registry): BuiltEl {
   // Destructure properties with safe fallbacks
   const { tag, children, attrs = {}, actions, ref, onMount } = incomingObject;
 
@@ -47,29 +39,13 @@ function buildDOM(incomingObject: VNode | VNode[], registry: Registry): BuiltEl 
   return el;
 }
 
-function patch(
-  oldVNode: VNode | VNode[],
-  newVNode: VNode | VNode[],
-  dom: BuiltEl,
-  registry: Registry,
-) {
-  // Hard Structural Check: Root level array mutation variants
-  if (Array.isArray(oldVNode) || Array.isArray(newVNode)) {
-    // If layout structures do not match, we must wipe and rebuild the root anchor context
-    const parent = dom instanceof Node ? dom.parentNode : null;
-    if (parent) {
-      const freshDOM = buildDOM(newVNode, registry);
-      parent.replaceChild(freshDOM, dom);
-    }
-    return;
-  }
-
+function patch(oldVNode: VNode, newVNode: VNode, dom: BuiltEl, registry: Registry) {
   const oldChild = oldVNode.children;
   const newChild = newVNode.children;
 
   // patch: tag mismatch modification
   if (oldVNode.tag !== newVNode.tag) {
-    const parentContainer = dom instanceof Node ? dom.parentNode : null;
+    const parentContainer = dom.parentNode;
     if (parentContainer) {
       parentContainer.replaceChild(buildDOM(newVNode, registry), dom);
     }
@@ -122,19 +98,20 @@ function patch(
     if (typeof newChild === "string") {
       dom.textContent = newChild;
     } else {
-      dom.appendChild(buildDOM(newChild, registry));
+      dom.textContent = "";
+      const fragment = document.createDocumentFragment();
+      newChild.forEach((child) => fragment.appendChild(buildDOM(child, registry)));
+      dom.appendChild(fragment);
     }
     return;
   }
 
   // Case E: String primitives mutating to Array layouts
   if (typeof oldChild === "string" && Array.isArray(newChild)) {
-    if (isProperNode(dom)) {
-      dom.replaceChildren(buildDOM(newChild, registry));
-    } else {
-      dom.textContent = "";
-      dom.appendChild(buildDOM(newChild, registry));
-    }
+    dom.textContent = "";
+    const fragment = document.createDocumentFragment();
+    newChild.forEach((child) => fragment.appendChild(buildDOM(child, registry)));
+    dom.appendChild(fragment);
     return;
   }
 
@@ -159,11 +136,11 @@ function patch(
   }
 }
 
-function createEngine(buildTree: () => VNode | VNode[]): Engine {
+function createEngine(buildTree: () => VNode): Engine {
   const registry: Registry = new Map();
 
   // Track internal state across renders
-  let currentVNode: VNode | VNode[] | null = null;
+  let currentVNode: VNode | null = null;
   let rootContainer: HTMLElement | null = null;
   let rootDOMElement: BuiltEl | null = null;
 

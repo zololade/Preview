@@ -13,7 +13,7 @@ type ElementAttributes<T extends HTMLElement> = {
 
 type ValidTagNameMap = HTMLElementTagNameMap & SVGElementTagNameMap;
 
-type BuiltEl = HTMLElement | SVGElement | Text | DocumentFragment;
+type BuiltEl = HTMLElement | SVGElement | Text;
 type DOMBuilderEl = HTMLElement | SVGElement;
 
 type VNodeMap = {
