@@ -63,14 +63,14 @@ function patch(
   const oldChild = oldVNode.children;
   const newChild = newVNode.children;
 
-  // tag change
+  // patch:tag change
   if (oldVNode.tag !== newVNode.tag) {
     const parentContainer = dom.parentElement;
     parentContainer?.replaceChild(buildDOM(newVNode, registry), dom);
     return;
   }
 
-  // update attributes
+  // patch:update attributes
   if (oldVNode.attrs && newVNode.attrs && oldVNode.attrs === newVNode.attrs) {
     console.warn(
       `Same attrs object reused for <${newVNode.tag}>${newVNode.ref ? ` (ref: "${newVNode.ref}")` : ""}:`,
@@ -97,6 +97,7 @@ function patch(
     }
   }
 
+  // patch:children branch
   // start:base cases
   if (oldChild === undefined && newChild === undefined) return;
   // handle string
@@ -115,9 +116,9 @@ function patch(
     }
   }
 
-  // dive deeper
+  // dive deeper into each child node
   if (Array.isArray(oldChild) && Array.isArray(newChild)) {
-    // i need to handle everyone together
+    //  explore old and new child together
     oldChild.forEach((_value, index) => {
       if (oldChild && newChild)
         patch(oldChild[index]!, newChild[index]!, dom.childNodes[index] as BuiltEl, registry);
