@@ -53,43 +53,42 @@ function patch(
   dom: BuiltEl,
   registry: Registry,
 ) {
-  if (Array.isArray(oldVNode) && Array.isArray(newVNode)) {
-    return;
-  }
+  // Hard Structural Check: Root level array mutation variants
   if (Array.isArray(oldVNode) || Array.isArray(newVNode)) {
+    // If layout structures do not match, we must wipe and rebuild the root anchor context
+    const parent = dom instanceof Node ? dom.parentNode : null;
+    if (parent) {
+      const freshDOM = buildDOM(newVNode, registry);
+      parent.replaceChild(freshDOM, dom);
+    }
     return;
   }
 
   const oldChild = oldVNode.children;
   const newChild = newVNode.children;
 
-  // patch:tag change
+  // patch: tag mismatch modification
   if (oldVNode.tag !== newVNode.tag) {
-    const parentContainer = dom.parentElement;
-    parentContainer?.replaceChild(buildDOM(newVNode, registry), dom);
+    const parentContainer = dom instanceof Node ? dom.parentNode : null;
+    if (parentContainer) {
+      parentContainer.replaceChild(buildDOM(newVNode, registry), dom);
+    }
     return;
   }
 
-  // patch:update attributes
+  // patch: attributes management implementation
   if (oldVNode.attrs && newVNode.attrs && oldVNode.attrs === newVNode.attrs) {
-    console.warn(
-      `Same attrs object reused for <${newVNode.tag}>${newVNode.ref ? ` (ref: "${newVNode.ref}")` : ""}:`,
-      newVNode.attrs,
-    );
+    console.warn(`Same attrs object reused for <${newVNode.tag}>`, newVNode.attrs);
   }
   if (newVNode.attrs) {
-    // add attribute
     for (const [key, value] of Object.entries(newVNode.attrs)) {
-      // in old and old has key
       if (oldVNode.attrs && Object.hasOwn(oldVNode.attrs, key)) {
         if ((oldVNode.attrs as Record<string, unknown>)[key] === value) continue;
       }
       applyAttrs(dom as DOMBuilderEl, { [key]: value });
-      continue;
     }
   }
   if (oldVNode.attrs) {
-    // remove attribute
     for (const [key, value] of Object.entries(oldVNode.attrs)) {
       if (!newVNode.attrs || !Object.hasOwn(newVNode.attrs, key)) {
         removeAttrs(dom as DOMBuilderEl, { [key]: value });
@@ -97,18 +96,19 @@ function patch(
     }
   }
 
-  // patch:children branch
-  // start:base cases
+  // --- DETERMINISTIC CHILDREN STRUCTURAL MATRIX ---
+
+  // Case A: Both empty targets
   if (oldChild === undefined && newChild === undefined) return;
-  // handle string
+
+  // Case B: Uniform primitive string swap
   if (typeof oldChild === "string" && typeof newChild === "string") {
     if (oldChild !== newChild) dom.textContent = newChild;
     return;
   }
-  // end:base cases
 
-  // handle oldChild undefined and new child Array or string, and vice versa
-  if (typeof oldChild !== "undefined" && typeof newChild === "undefined") {
+  // Case C: Absolute breakdown removal (Wipe completely)
+  if (oldChild !== undefined && newChild === undefined) {
     if (isProperNode(dom)) {
       dom.replaceChildren();
     } else {
@@ -117,40 +117,43 @@ function patch(
     return;
   }
 
-  if (typeof oldChild === "undefined" && typeof newChild !== "undefined") {
+  // Case D: Clean structural growth instantiation
+  if (oldChild === undefined && newChild !== undefined) {
     if (typeof newChild === "string") {
       dom.textContent = newChild;
-      return;
+    } else {
+      dom.appendChild(buildDOM(newChild, registry));
     }
-    dom.appendChild(buildDOM(newChild, registry));
     return;
   }
 
-  // handle oldChild is string and newChild is Array or, and vice versa
+  // Case E: String primitives mutating to Array layouts
   if (typeof oldChild === "string" && Array.isArray(newChild)) {
-    const textNode = dom.firstChild;
-    if (textNode) dom.replaceChild(buildDOM(newChild, registry), textNode);
+    if (isProperNode(dom)) {
+      dom.replaceChildren(buildDOM(newChild, registry));
+    } else {
+      dom.textContent = "";
+      dom.appendChild(buildDOM(newChild, registry));
+    }
     return;
   }
 
+  // Case F: Deep Node Lists normalizing back down to String primitives
   if (Array.isArray(oldChild) && typeof newChild === "string") {
-    const textNode = document.createTextNode(newChild);
-
-    if (isProperNode(dom)) {
-      dom.replaceChildren(textNode);
+    if (isProperNode(dom) && "replaceChildren" in dom) {
+      dom.replaceChildren(document.createTextNode(newChild));
     } else {
       dom.textContent = newChild;
     }
     return;
   }
 
-  // dive deeper into each child node
+  // Case G: Structural Matrix Loop (Deep Subtree Array Diffing)
   if (Array.isArray(oldChild) && Array.isArray(newChild)) {
-    //  explore old and new child together
     oldChild.forEach((_value, index) => {
-      if (oldChild && newChild)
+      if (index < dom.childNodes.length) {
         patch(oldChild[index]!, newChild[index]!, dom.childNodes[index] as BuiltEl, registry);
-      //remove assertion when individual cases have been handled
+      }
     });
     return;
   }

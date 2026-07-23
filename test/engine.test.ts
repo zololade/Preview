@@ -190,7 +190,7 @@ describe("Engine", () => {
     engine.render();
 
     expect(warnSpy).toHaveBeenCalledOnce();
-    expect(warnSpy.mock.calls[0]?.[0]).toContain('ref: "box"');
+    expect(warnSpy.mock.calls[0]?.[0]).toContain("Same attrs object reused for <div>");
 
     warnSpy.mockRestore();
   });
