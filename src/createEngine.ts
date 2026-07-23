@@ -58,6 +58,7 @@ function patch(oldVNode: VNode, newVNode: VNode, dom: BuiltEl, registry: Registr
     );
   }
   if (newVNode.attrs) {
+    // add attribute
     for (const [key, value] of Object.entries(newVNode.attrs)) {
       // in old and old has key
       if (oldVNode.attrs && Object.hasOwn(oldVNode.attrs, key)) {
@@ -68,6 +69,7 @@ function patch(oldVNode: VNode, newVNode: VNode, dom: BuiltEl, registry: Registr
     }
   }
   if (oldVNode.attrs) {
+    // remove attribute
     for (const [key, value] of Object.entries(oldVNode.attrs)) {
       if (!newVNode.attrs || !Object.hasOwn(newVNode.attrs, key)) {
         removeAttrs(dom as DOMBuilderEl, { [key]: value });
@@ -75,15 +77,14 @@ function patch(oldVNode: VNode, newVNode: VNode, dom: BuiltEl, registry: Registr
     }
   }
 
-  // base cases
-  // ####
+  // start:base cases
   if (oldChild === undefined && newChild === undefined) return;
   // handle string
   if (typeof oldChild === "string" && typeof newChild === "string") {
-    dom.textContent = newChild;
+    if (oldChild !== newChild) dom.textContent = newChild;
     return;
   }
-  // ####
+  // end:base cases
 
   // handle oldChild string and new child Array or no child, and vice versa
 
