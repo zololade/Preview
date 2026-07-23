@@ -107,24 +107,40 @@ function patch(
   }
   // end:base cases
 
-  // handle oldChild string and new child Array or no child, and vice versa
-  if (typeof oldChild === "string" && typeof newChild !== "string") {
-    if (newChild) {
-      const textNode = dom.firstChild;
-      if (textNode) dom.replaceChild(buildDOM(newChild, registry), textNode);
-      return;
-    }
-  }
-  if (typeof oldChild !== "string" && typeof newChild === "string") {
-    const textNode = document.createTextNode(newChild);
-
-    if (dom instanceof HTMLElement || dom instanceof SVGElement) {
-      dom.replaceChildren(textNode);
+  // handle oldChild undefined and new child Array or string, and vice versa
+  if (typeof oldChild !== "undefined" && typeof newChild === "undefined") {
+    if (isProperNode(dom)) {
+      dom.replaceChildren();
     } else {
       dom.textContent = "";
-      dom.appendChild(textNode);
     }
+    return;
+  }
 
+  if (typeof oldChild === "undefined" && typeof newChild !== "undefined") {
+    if (typeof newChild === "string") {
+      dom.textContent = newChild;
+      return;
+    }
+    dom.appendChild(buildDOM(newChild, registry));
+    return;
+  }
+
+  // handle oldChild is string and newChild is Array or, and vice versa
+  if (typeof oldChild === "string" && Array.isArray(newChild)) {
+    const textNode = dom.firstChild;
+    if (textNode) dom.replaceChild(buildDOM(newChild, registry), textNode);
+    return;
+  }
+
+  if (Array.isArray(oldChild) && typeof newChild === "string") {
+    const textNode = document.createTextNode(newChild);
+
+    if (isProperNode(dom)) {
+      dom.replaceChildren(textNode);
+    } else {
+      dom.textContent = newChild;
+    }
     return;
   }
 
@@ -194,4 +210,12 @@ function createEngine(buildTree: () => VNode | VNode[]): Engine {
   };
 }
 
+// helper
+function isProperNode(el: BuiltEl): el is Exclude<BuiltEl, Text> {
+  if (el instanceof HTMLElement || el instanceof SVGElement || el instanceof DocumentFragment) {
+    return true;
+  } else {
+    return false;
+  }
+}
 export { createEngine };

@@ -123,8 +123,49 @@ describe("Engine", () => {
     );
     bool = false;
     engine.render();
-    console.log(container.querySelector(".newNode")?.childNodes);
     expect(container.querySelector(".newNode")?.textContent).toBe("hello");
+  });
+
+  it("update node child to undefined", () => {
+    let bool = true;
+    const { container, engine } = setup(() =>
+      bool
+        ? {
+            tag: "div",
+            children: [
+              { tag: "p", children: "hello" },
+              { tag: "p", children: "hello" },
+            ],
+          }
+        : {
+            tag: "div",
+            attrs: { className: "newNode" },
+          },
+    );
+    bool = false;
+    engine.render();
+    expect(container.querySelector(".newNode")?.childNodes.length).toBe(0);
+  });
+
+  it("update undefined to node child", () => {
+    let bool = true;
+    const { container, engine } = setup(() =>
+      bool
+        ? {
+            tag: "div",
+          }
+        : {
+            tag: "div",
+            attrs: { className: "newNode" },
+            children: [
+              { tag: "p", children: "hello" },
+              { tag: "p", children: "hello" },
+            ],
+          },
+    );
+    bool = false;
+    engine.render();
+    expect(container.querySelector(".newNode")?.childNodes.length).toBe(2);
   });
 
   it("confirm if array VNode are handled properly", () => {
