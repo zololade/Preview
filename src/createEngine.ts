@@ -98,20 +98,14 @@ function patch(oldVNode: VNode, newVNode: VNode, dom: BuiltEl, registry: Registr
     if (typeof newChild === "string") {
       dom.textContent = newChild;
     } else {
-      dom.textContent = "";
-      const fragment = document.createDocumentFragment();
-      newChild.forEach((child) => fragment.appendChild(buildDOM(child, registry)));
-      dom.appendChild(fragment);
+      replaceChildren(dom, newChild, registry);
     }
     return;
   }
 
   // Case E: String primitives mutating to Array layouts
   if (typeof oldChild === "string" && Array.isArray(newChild)) {
-    dom.textContent = "";
-    const fragment = document.createDocumentFragment();
-    newChild.forEach((child) => fragment.appendChild(buildDOM(child, registry)));
-    dom.appendChild(fragment);
+    replaceChildren(dom, newChild, registry);
     return;
   }
 
@@ -198,4 +192,12 @@ function isProperNode(el: BuiltEl): el is Exclude<BuiltEl, Text> {
     return false;
   }
 }
+
+function replaceChildren(dom: BuiltEl, newChild: VNode[], registry: Registry) {
+  dom.textContent = "";
+  const fragment = document.createDocumentFragment();
+  newChild.forEach((child) => fragment.appendChild(buildDOM(child, registry)));
+  dom.appendChild(fragment);
+}
+
 export { createEngine };
