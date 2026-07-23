@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createEngine } from "../src/createEngine";
 import type { VNode } from "../src/lib/types";
 
-function setup(buildTree: () => VNode) {
+function setup(buildTree: () => VNode | VNode[]) {
   const container = document.createElement("div");
   const engine = createEngine(buildTree);
   engine.mount(container);
@@ -102,6 +102,14 @@ describe("Engine", () => {
     bool = false;
     engine.render();
     expect(container.querySelector(".newNode")?.tagName).toBe("P");
+  });
+
+  it("confirm if array VNode are handled properly", () => {
+    const { container } = setup(() => [
+      { tag: "div", children: "hello" },
+      { tag: "section", attrs: { className: "node2" }, children: "hello" },
+    ]);
+    expect(container.querySelector(".node2")?.tagName).toBe("SECTION");
   });
 
   it("warns when the same attrs object is reused across renders", () => {

@@ -5,7 +5,15 @@ import type { BuiltEl, DOMBuilderEl, Engine, Registry, VNode } from "./lib/types
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-function buildDOM(incomingObject: VNode, registry: Registry): BuiltEl {
+function buildDOM(incomingObject: VNode | VNode[], registry: Registry): BuiltEl {
+  if (Array.isArray(incomingObject)) {
+    const el = document.createDocumentFragment();
+    incomingObject.forEach((child) => {
+      el.appendChild(buildDOM(child, registry));
+    });
+    return el;
+  }
+
   // Destructure properties with safe fallbacks
   const { tag, children, attrs = {}, actions, ref, onMount } = incomingObject;
 
@@ -39,7 +47,19 @@ function buildDOM(incomingObject: VNode, registry: Registry): BuiltEl {
   return el;
 }
 
-function patch(oldVNode: VNode, newVNode: VNode, dom: BuiltEl, registry: Registry) {
+function patch(
+  oldVNode: VNode | VNode[],
+  newVNode: VNode | VNode[],
+  dom: BuiltEl,
+  registry: Registry,
+) {
+  if (Array.isArray(oldVNode) && Array.isArray(newVNode)) {
+    return;
+  }
+  if (Array.isArray(oldVNode) || Array.isArray(newVNode)) {
+    return;
+  }
+
   const oldChild = oldVNode.children;
   const newChild = newVNode.children;
 
@@ -87,6 +107,13 @@ function patch(oldVNode: VNode, newVNode: VNode, dom: BuiltEl, registry: Registr
   // end:base cases
 
   // handle oldChild string and new child Array or no child, and vice versa
+  if (typeof oldChild === "string" && typeof newChild !== "string") {
+    if (newChild) {
+      const textNode = dom.firstChild;
+      if (textNode) dom.replaceChild(buildDOM(newChild, registry), textNode);
+      return;
+    }
+  }
 
   // dive deeper
   if (Array.isArray(oldChild) && Array.isArray(newChild)) {
@@ -100,11 +127,11 @@ function patch(oldVNode: VNode, newVNode: VNode, dom: BuiltEl, registry: Registr
   }
 }
 
-function createEngine(buildTree: () => VNode): Engine {
+function createEngine(buildTree: () => VNode | VNode[]): Engine {
   const registry: Registry = new Map();
 
   // Track internal state across renders
-  let currentVNode: VNode | null = null;
+  let currentVNode: VNode | VNode[] | null = null;
   let rootContainer: HTMLElement | null = null;
   let rootDOMElement: BuiltEl | null = null;
 
