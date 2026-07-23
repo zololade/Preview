@@ -104,6 +104,29 @@ describe("Engine", () => {
     expect(container.querySelector(".newNode")?.tagName).toBe("P");
   });
 
+  it("update node child to a string child", () => {
+    let bool = true;
+    const { container, engine } = setup(() =>
+      bool
+        ? {
+            tag: "div",
+            children: [
+              { tag: "p", children: "hello" },
+              { tag: "p", children: "hello" },
+            ],
+          }
+        : {
+            tag: "div",
+            attrs: { className: "newNode" },
+            children: "hello",
+          },
+    );
+    bool = false;
+    engine.render();
+    console.log(container.querySelector(".newNode")?.childNodes);
+    expect(container.querySelector(".newNode")?.textContent).toBe("hello");
+  });
+
   it("confirm if array VNode are handled properly", () => {
     const { container } = setup(() => [
       { tag: "div", children: "hello" },

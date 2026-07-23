@@ -115,6 +115,18 @@ function patch(
       return;
     }
   }
+  if (typeof oldChild !== "string" && typeof newChild === "string") {
+    const textNode = document.createTextNode(newChild);
+
+    if (dom instanceof HTMLElement || dom instanceof SVGElement) {
+      dom.replaceChildren(textNode);
+    } else {
+      dom.textContent = "";
+      dom.appendChild(textNode);
+    }
+
+    return;
+  }
 
   // dive deeper into each child node
   if (Array.isArray(oldChild) && Array.isArray(newChild)) {
