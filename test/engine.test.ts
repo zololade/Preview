@@ -89,6 +89,21 @@ describe("Engine", () => {
     expect(container.querySelector(".element")?.tagName).toBe("DIV");
   });
 
+  it("update string child to a new node", () => {
+    let bool = true;
+    const { container, engine } = setup(() =>
+      bool
+        ? { tag: "div", children: "hello" }
+        : {
+            tag: "div",
+            children: [{ tag: "p", attrs: { className: "newNode" }, children: "hello" }],
+          },
+    );
+    bool = false;
+    engine.render();
+    expect(container.querySelector(".newNode")?.tagName).toBe("P");
+  });
+
   it("warns when the same attrs object is reused across renders", () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const sharedAttrs = { className: "element" };
